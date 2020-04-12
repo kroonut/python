@@ -1,0 +1,33 @@
+#copybot.>py
+import pyautogui as pg
+import time
+import winsound
+
+def CopyText(nextline=0):
+    
+        #---step1
+        time.sleep(0)
+        start_point = (693,68 + nextline)
+        pg.click(start_point)
+
+        #---step2
+        time.sleep(0)
+        end_point = (900,68 + nextline)
+        pg.dragTo(end_point,duration=0)
+
+        #---step3
+        pg.hotkey('ctrl','c')
+
+        #---step4
+        left_notepad = (8,68+nextline)
+        pg.click(left_notepad)
+        pg.press('>')
+
+        #---step5
+        pg.hotkey('ctrl','v')
+        pg.press('enter')
+
+        winsound.Beep(500, 300)
+        
+for i in range(10):
+    CopyText(32*i)
