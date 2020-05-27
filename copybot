@@ -1,0 +1,96 @@
+#copybot.>pyA
+import pyautogui as pg
+import time
+import winsound
+#open notepad1
+pg.click(70 , 743 , button='left', interval=0.25)
+pg.moveTo(88, 708)
+pg.write('notepad1', interval=0.25)
+pg.moveTo(223, 215)
+pg.click(223 , 215 , button='left', interval=0.25)
+pg.moveTo(673, 57)
+pg.click(673 , 57 , clicks=2, interval=0.25)
+pg.moveTo(655, 17)
+pg.dragTo(0, 348, 2, button='left')
+winsound.Beep(500, 300)
+
+#open notepad2
+pg.click(70 , 743 , button='left', interval=0.25)
+pg.moveTo(88, 708)
+pg.write('notepad2', interval=0.25)
+pg.moveTo(223, 215)
+pg.click(223 , 215 , button='left', interval=0.25)
+pg.moveTo(673, 57)
+pg.click(673 , 57 , clicks=2, interval=0.25)
+pg.moveTo(655, 17)
+pg.dragTo(1366, 364, 2, button='left')
+pg.click(705 , 541 , button='left', interval=0.25)
+winsound.Beep(500, 300)
+
+#write text
+def write(nextline=0):
+        #---step1
+        time.sleep(0)
+        start_point = (700,68 + nextline)
+        pg.click(start_point)
+        pg.write('Hello world!', interval=0.2)
+        pg.press('enter')
+        winsound.Beep(500, 300)
+for i in range(5):
+        write(33*i)
+
+
+#copy text to left notepad and delete all
+def CopyText(nextline=0):
+    
+        #---step1
+        time.sleep(0)
+        start_point = (700,68 + nextline)
+        pg.click(start_point)
+
+        #---step2
+        time.sleep(0)
+        end_point = (900,68 + nextline)
+        pg.dragTo(end_point,duration=0)
+
+        #---step3
+        pg.hotkey('ctrl','c')
+
+        #---step4
+        left_notepad = (8,68+nextline)
+        pg.click(left_notepad)
+        pg.press('>')
+
+        #---step5
+        pg.hotkey('ctrl','v')
+        pg.press('enter')
+
+        winsound.Beep(500, 300)
+        
+for i in range(5):
+    CopyText(33*i)  # notepad font size Tahoma 20 px
+pg.click(8,68)
+pg.hotkey('ctrl' , 'a', duration=1, interval=1)
+pg.press('delete')
+
+pg.click(700,68)
+pg.hotkey('ctrl' , 'a', duration=1, interval=1)
+pg.press('delete')
+
+pg.click(700,68)
+pg.write('Done', interval=0.25)
+pg.press('enter')
+pg.write('Close all Windows', interval=0.25)
+
+pg.hotkey('ctrl' , 'a', duration=1, interval=1)
+pg.press('delete')
+
+pg.click(340,25)
+pg.hotkey('ctrl','s', interval=0.5)
+pg.hotkey('alt','f4', interval=0.5)
+winsound.Beep(500, 300)
+
+pg.click(1037,25)
+pg.hotkey('ctrl','s', interval=0.5)
+pg.hotkey('alt','f4', interval=0.5)
+winsound.Beep(500, 300)
