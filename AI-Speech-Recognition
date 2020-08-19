@@ -1,0 +1,354 @@
+# AI Speech Recognition Developed by Nutthakorn Thailand 
+
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
+import time
+import threading
+import speech_recognition as speech
+from gtts import gTTS
+from googletrans import Translator
+import random
+import playsound
+import os
+import requests
+import sys
+
+GUI = Tk()
+GUI.title("AI Speech Recognition")
+GUI.resizable(True, True)
+window_width = 1024
+window_height = 768
+screen_width = GUI.winfo_screenwidth()
+screen_height = GUI.winfo_screenheight()
+x_cordinate = int((screen_width/2) - (window_width/2))
+y_cordinate = int((screen_height/2) - (window_height/2))
+GUI.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+GUI.state('zoomed')
+
+############################################################################################
+
+Lam = Translator()
+running = True
+
+
+###########################################################################3
+def select_lang_display():
+    print('selected : ',cb1.get())
+    print('-------------- Listening ----------------')
+    if cb1.get() == 'Thai':
+        input_status.set('Listening : Thai -> English')
+    if cb1.get() == 'English':
+        input_status.set('Listening : English -> Thai')
+    if cb1.get() == 'Chinese':
+        input_status.set('Listening : Chinese -> Thai')
+    if cb1.get() == 'Japanese':
+        input_status.set('Listening : Japanese -> Thai')
+    if cb1.get() == 'Korean':
+        input_status.set('Listening : Korean -> Thai')
+
+
+def record_audio(ask=False):
+    global running
+    while running :
+        with speech.Microphone() as source:
+            if ask:
+                    alexis_speak(ask)
+            audio = data.listen(source,timeout=10 ,phrase_time_limit=10)
+            voice_data = ''
+            try:
+                if cb1.get() == 'Thai':
+                    voice_data = data.recognize_google(audio, None,'th')
+                    print('คุณพูดว่า : ',voice_data)
+                    trans_to_eng = Lam.translate(voice_data, src='th', dest='en')
+                    print('แปล : ',f'{trans_to_eng.text}')
+                    print('-----------------------------------------')
+                    listen_input.set(voice_data)
+                    result_tran.set(trans_to_eng.text)
+                    trans_to_eng = trans_to_eng.text
+                    alexis_speak(trans_to_eng)
+
+                if cb1.get() == 'English':
+                    speak_en = data.recognize_google(audio, None,'en')
+                    print('คุณพูดว่า : ',speak_en)
+                    trans_to_th = Lam.translate(speak_en, src='en', dest='th')
+                    print('แปล : ',f'{trans_to_th.text}')
+                    print('-----------------------------------------')
+                    listen_input.set(speak_en)
+                    result_tran.set(trans_to_th.text)
+                    alexis_speak(speak_en)
+
+                # if cb1.get() == 'Chinese':
+                #     speak_cn = data.recognize_google(audio, None,'zh-cn')
+                #     print('คุณพูดว่า : ',speak_cn)
+                #     trans_to_th = Lam.translate(speak_cn, src='zh-cn', dest='th')
+                #     print('แปล : ',f'{trans_to_th.text}')
+                #     print('-----------------------------------------')
+                #     listen_input.set(speak_cn)
+                #     result_tran.set(trans_to_th.text)
+
+                # if cb1.get() == 'Japanese':
+                #     speak_ja = data.recognize_google(audio, None,'ja')
+                #     print('คุณพูดว่า : ',speak_ja)
+                #     trans_to_th = Lam.translate(speak_ja, src='ja', dest='th')
+                #     print('แปล : ',f'{trans_to_th.text}')
+                #     print('-----------------------------------------')
+                #     listen_input.set(speak_ja)
+                #     result_tran.set(trans_to_th.text)
+
+                # if cb1.get() == 'Korean':
+                #     speak_ko = data.recognize_google(audio, None,'ko')
+                #     print('คุณพูดว่า : ',speak_ko)
+                #     trans_to_th = Lam.translate(speak_ko, src='ko', dest='th')
+                #     print('แปล : ',f'{trans_to_th.text}')
+                #     print('-----------------------------------------')
+                #     listen_input.set(speak_ko)
+                #     result_tran.set(trans_to_th.text)
+            except speech.UnknownValueError:
+                alexis_speak('sorry, I did not get that')
+            except speech.RequestError:
+                alexis_speak('sorry, my speec service is down')
+            except:
+                pass
+
+
+
+def alexis_speak(audio_string):
+    #voice_data = record_audio()
+    tts = gTTS(text=audio_string,lang='en')
+    r = random.randint(1,10000000)
+    audio_file = 'audio-' + str(r) + '.mp3'
+    tts.save(audio_file)
+    playsound.playsound(audio_file)
+    #print(audio_string)
+    os.remove(audio_file)
+
+
+def respond(voice_data):
+    if 'what is your name' in voice_data:
+        alexis_speak('My name is Alexis')
+    if 'what time is it' in voice_data:
+        alexis_speak(ctime())
+    if 'search' in voice_data:
+        search = record_audio('What do you want to search for?')
+        url = 'https://google.com/search?q=' + search
+        webbrowser.get().open(url)
+        alexis_speak('Here is what I found for' + search)
+    if 'find location' in voice_data:
+        search = record_audio('What is the location?')
+        url = 'https://google.nl/maps/place/' + location + '/&amp;'
+        webbrowser.get().open(url)
+        alexis_speak('Here is the location of' + location)
+    if 'exit' in voice_data:
+        exit()
+
+
+
+def start_listen():
+    select_lang_display()
+    threading.Thread(target=record_audio).start()
+
+
+def exit_win():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        global running
+        running = False
+        GUI.destroy()
+
+
+def tran_to_other():
+
+    if len(listen_input.get()) == 0:
+        print('Speak...')
+        messagebox.showinfo("Message", "Speak...")
+    else:
+        speak = listen_input.get()
+        trans = Lam.translate(speak, src='th', dest='en')
+        print('แปล : ',f'{trans.text}')
+        result_tran.set(trans.text+'\n')
+
+def reset():
+    listen_input.set('')
+    result_tran.set('')
+
+def button_disable():
+    btn_start_listen.configure(state='disabled')
+    btn_reset.configure(state='disabled')
+
+
+def button_enable():
+    btn_start_listen.configure(state='normal')
+    btn_reset.configure(state='normal')
+
+Lam = Translator()
+data = speech.Recognizer()
+
+# Check microphone ################################################################
+def check_microphone():
+    try:
+        mic = speech.Microphone()
+        reset()
+        button_enable()
+        lb_microphone_chk.configure(bg='green',fg='white')
+        microphone_status_chk.set('Microphone : PASS')
+        print('Microphone : PASS')
+
+
+    except:
+        #lb0.configure(bg='yellow',fg='red')
+        #input_status.set('Please Check Your Microphone and Internet Connection')
+        button_disable()
+        lb_microphone_chk.configure(bg='red',fg='white')
+        microphone_status_chk.set('Microphone : FAIL')
+        print('Microphone : FAIL')
+
+# Check connection ################################################################
+import requests
+connection = False
+def check_internet():
+    try:
+        if requests.get('https://google.com').ok:
+            connection = True
+            print("Connection : PASS")
+            button_enable()
+            lb_internet_chk.configure(bg='green',fg='white')
+            internet_status_chk.set('Connection : PASS')
+    except:
+            #lb0.configure(bg='yellow',fg='red')
+            #input_status.set('Please Check Your Microphone and Internet Connection')
+            print("Connection : FAIL")
+            button_disable()
+            lb_internet_chk.configure(bg='red',fg='white')
+            internet_status_chk.set('Connection : FAIL')
+
+def refresh():
+
+    try:
+        check_internet()
+        check_microphone()
+
+    except:
+        print('Chk')
+    ckh_status()
+
+def ckh_status():
+    # print (internet_status_chk.get())
+    # print (microphone_status_chk.get())
+    if internet_status_chk.get()  == 'Connection : PASS':
+        lb0.configure(bg='blue',fg='white')
+        input_status.set('Ready')
+    if microphone_status_chk.get() == 'Microphone : PASS':
+        lb0.configure(bg='blue',fg='white')
+        input_status.set('Ready')
+    if internet_status_chk.get()  == 'Connection : FAIL':
+        lb0.configure(bg='yellow',fg='black')
+        input_status.set('Please Check Your Microphone and Internet Connection')
+    if microphone_status_chk.get() == 'Microphone : FAIL':
+        lb0.configure(bg='yellow',fg='black')
+        input_status.set('Please Check Your Microphone and Internet Connection')
+
+    # else:
+    #     input_status.set('PASS')
+
+
+
+f_top=Frame(GUI)
+f_top.pack(side=TOP,fill=X)
+
+
+input_status = StringVar()
+input_status.set('')
+
+lb0=Label(f_top,textvariable=input_status,font=('Tahoma',15),bg='blue',fg='white',height='1' , anchor="center",bd=1,relief='flat')
+lb0.pack(padx=0,pady=0,ipadx=5,ipady=5,fill=X) #fill=X,expand=1
+
+
+f0=Frame(GUI)
+f0.pack(side=TOP,fill=X)
+
+listen_input = StringVar()
+listen_input.set('')
+
+result_tran = StringVar()
+result_tran.set('')
+
+
+lb1=Label(f0,textvariable=listen_input,font=('Tahoma',25,'bold'),fg='blue', height='7',wraplength='900' , anchor="center",bd=1,relief='flat')
+lb1.pack(side=TOP,padx=5,pady=5,ipadx=5,ipady=5,fill=X,expand=1)
+
+lb2=Label(f0,textvariable=result_tran,font=('Tahoma',25,'bold'),fg='black', height='7',wraplength='900' , anchor="center",bd=1,relief='flat')
+lb2.pack(side=TOP,padx=5,pady=5,ipadx=5,ipady=5,fill=X,expand=1)
+
+# result ######################################################################
+
+TKFont = ttk.Style()
+TKFont.configure('TRadiobutton', font=('Tahoma', 10))
+ttk.Style().configure("TRadiobutton", padding=5, relief="flat")
+TKFont.configure('TCheckbutton', font=('Tahoma', 10))
+ttk.Style().configure("TCheckbutton", padding=5, relief="flat")
+
+framselector = ttk.Style()
+framselector.configure('Red.TLabelframe.Label', font=('Tahoma', 15))
+
+
+
+# control ######################################################################
+
+
+
+
+f1=Frame(GUI)
+f1.pack(side='bottom')
+
+
+internet_status_chk= StringVar()
+internet_status_chk.set('')
+
+microphone_status_chk= StringVar()
+microphone_status_chk.set('')
+
+btn_refresh = ttk.Button(f1,text='Refresh',command=refresh)
+btn_refresh.grid(row=0,column=0,padx=5,pady=5,ipadx=5,ipady=5)
+
+lb_chk=Label(f1,text='Check ->',font=('Tahoma',10),bg='orange',fg='black')
+lb_chk.grid(row=0,column=1,padx=5,pady=5,ipadx=5,ipady=5)
+
+lb_internet_chk=Label(f1,textvariable=internet_status_chk)
+lb_internet_chk.grid(row=0,column=2,padx=5,pady=5,ipadx=5,ipady=5)
+
+lb_microphone_chk=Label(f1,textvariable=microphone_status_chk)
+lb_microphone_chk.grid(row=0,column=3,padx=5,pady=5,ipadx=5,ipady=5)
+
+L1 = Label(f1, text = 'Language ->',font=('Tahoma',10),bg='orange',fg='black')
+L1.grid(row=0,column=4,pady=5,padx=5,ipadx=5,ipady=5)
+
+cb1=StringVar()
+
+cblist = ['Thai','English','Chinese','Japanese','Korean']
+
+cb1 = ttk.Combobox(f1,values=cblist,font=('Tahoma', 10),justify='center',width=10,state='readonly')
+cb1.set('Thai')
+cb1.grid(row=0,column=5 , ipadx=5,ipady=5,padx=5,pady=5)
+
+btn_start_listen = ttk.Button(f1,text='Speak',command=start_listen)
+btn_start_listen.grid(row=0,column=6,padx=5,pady=5,ipadx=5,ipady=5)
+
+btn_reset = ttk.Button(f1,text='Reset',command=reset)
+btn_reset.grid(row=0,column=7,padx=5,pady=5,ipadx=5,ipady=5)
+
+btn_exit_win = ttk.Button(f1,text='Exit',command=exit_win)
+btn_exit_win.grid(row=0,column=8,padx=5,pady=5,ipadx=5,ipady=5)
+
+
+refresh()
+ckh_status()
+
+
+# time.sleep(1)
+# alexis_speak('How can I help you?')
+# while 1:
+#     voice_data = record_audio()
+#     respond(voice_data)
+
+GUI.protocol("WM_DELETE_WINDOW", exit_win)
+GUI.mainloop()
