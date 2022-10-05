@@ -1,0 +1,579 @@
+################## www.kroonut.com ##################
+
+import requests
+import json
+import pandas as pd
+import re
+from tqdm import tqdm
+from tkinter import messagebox as m_box
+from tkinter import Tk, simpledialog
+
+from tkinter import *
+from tkinter import ttk
+import tkinter as tk
+from tkinter import messagebox
+from tkinter.ttk import Notebook
+import tkinter.scrolledtext as scrolledtext
+from tkinter import Entry, Tk
+from tkinter.filedialog import asksaveasfile
+from tkinter.filedialog import askopenfile
+from tkinter import filedialog
+
+import string
+from gtts import gTTS
+from playsound import playsound
+from googletrans import Translator
+
+import os
+import sys
+import csv
+import time
+import random
+import playsound
+import requests
+import winsound
+import threading
+import multiprocessing
+import shutil
+
+######################################################################
+
+root = Tk()
+root.title("Botnoi Voice")
+width = 1024
+height = 768
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+x = (screen_width/1) - (width/1)
+y = (screen_height/1) - (height/1)
+root.geometry("%dx%d+%d+%d" % (width, height, x, y))
+root.resizable(1, 1)
+root.state('zoomed')
+
+###################################################################
+
+Tab = Notebook(root)
+
+F1 = Frame(Tab)
+F2 = Frame(Tab)
+Tab.pack(fill=BOTH, expand=1)
+
+Tab.add(F1, text='Generator')
+Tab.add(F2, text='All Download')
+
+###################################################################
+
+running = True
+
+txt_input = StringVar()
+txt_input.set('hello')
+v_link_result = StringVar()
+
+def genvoice_pro():
+	threading.Thread(target=genvoice).start()
+	threading.Thread(target=geturl).start()
+
+def download_pro():
+	threading.Thread(target=download).start()
+
+def reset_txt_pro():
+	threading.Thread(target=reset_txt).start()
+
+spk_list = {'1' : 'เอวา' ,
+'2' : 'โบ' ,
+'3' : 'คุณงาม' ,
+'4' : 'แม็กซ์' ,
+'5' : 'อลัน' ,
+'6' : 'ไซเรน' ,
+'8' : 'อลิสา' ,
+'9' : 'เลโอ' ,
+'10' : 'นาเดียร์' ,
+'12' : 'วนิลา' ,
+'14' : 'อนันดา' ,
+'15' : 'ไอลีน' ,
+'16' : 'ฮิโระ' ,
+'17' : 'ครูดีดี๊' ,
+'18' : 'เจ้าเนิร์ด' ,
+'19' : 'โอโตะ' ,
+'20' : 'อาวอร์ม' ,
+'21' : 'ปีเตอร์' ,
+'27' : 'คริส' ,
+'29' : 'เจสัน' ,
+'30' : 'หญิงไอโกะ' ,
+'31' : 'น้าเกรซ' ,
+'32' : 'อาจารย์หลิน' ,
+'33' : 'สโม๊ค',
+'35' : 'นายเบรด' ,
+'36' : 'เนโอ' ,
+'37' : 'สาลี' ,
+'38' : 'แบมบู' ,
+'41' : 'ผู้ใหญ่ลี' ,
+'42' : 'เท็ดดี้' ,
+'43' : 'โนรา',
+'45' : 'แม็ท' ,
+'46' : 'เอลลี่' ,
+'48' : 'ข้าวตอก' ,
+'49' : 'อ้ายเถิน' ,
+'52' : 'ทัช' ,
+'53' : 'เบน' ,
+'54' : 'คำแก้ว' ,
+'55' : 'น้องโนว์' ,
+'56' : 'ท็อป'}
+
+def genvoice(text):
+	try:
+		if v_token_root.get()=='':
+			status.set("NO TOKEN")
+			time.sleep(2)
+			status.set("Botnoi Voice Sound Generator")
+		if txt_input.get("1.0", "end-1c")=="":
+			status.set("NO DATA")
+			time.sleep(2)
+			status.set("Botnoi Voice Sound Generator")
+			txt_input.insert(INSERT, "Insert Your Text Here...")
+			txt_input.configure(fg='grey')
+
+		if txt_input.get("1.0", "end-1c")=="Insert Your Text Here...":
+			status.set("NO DATA")
+			time.sleep(2)
+			status.set("Botnoi Voice Sound Generator")
+
+		else:
+			sel_voice = int(CB1.get())
+			status.set("Generate Audio")
+			text = txt_input.get("1.0", "end-1c")
+			tk0 = v_token_root.get()
+			url = "https://voice.botnoi.ai/api/service/generate_audio"
+			payload = {"text":text, "speaker":sel_voice, "volume":5, "speed":1, "type_media":"mp3"}
+			headers = {
+			'Botnoi-Token': tk0,
+			'Content-Type': 'application/json'
+			}
+			response = requests.request("POST", url, headers=headers, json=payload)
+			print('text:',txt_input.get("1.0", "end-1c"))
+			print('Speaker:',sel_voice,spk_list[var_spk_list.get()])
+			time.sleep(2)
+			status.set("Botnoi Voice Sound Generator")
+			return response.json()
+	except:
+		pass
+
+def geturl(event=None):
+	v_link_result.set('MP3 URL')
+	global running
+	running = True
+	try:
+		text = txt_input.get("1.0", "end-1c")
+		urllist=[]
+		urllist.append(genvoice(text)['audio_url'])
+		for i in urllist:
+			print('url:',i)
+			v_link_result.set(i)
+			download_pro()
+			winsound.PlaySound("*", winsound.SND_ALIAS)
+			return i
+	except:
+		pass
+	
+def reset_txt_input(event):
+	if txt_input.get("1.0", "end-1c")=='Insert Your Text Here...':
+		txt_input.delete('1.0', END)
+		txt_input.configure(fg='black')
+	else:
+		pass
+
+def reset_txt():
+	if txt_input.get("1.0", "end-1c")=="":
+		status.set("NO DATA")
+		time.sleep(1)
+		txt_input.insert(INSERT, "Insert Your Text Here...")
+		txt_input.configure(fg='grey')
+		status.set("Botnoi Voice Sound Generator")
+	else:
+		txt_input.delete('1.0', END)
+		status.set("Botnoi Voice Sound Generator")
+	if v_link_result.get()=='':
+		status.set("NO DATA")
+		time.sleep(1)
+		txt_input.insert(INSERT, "Insert Your Text Here...")
+		txt_input.configure(fg='grey')
+		status.set("Botnoi Voice Sound Generator")
+	else:
+		#link_result.delete('1.0', END)
+		v_link_result.set('Result mp3 URL ...')
+		status.set("Botnoi Voice Sound Generator")
+
+status = StringVar()
+status.set('Botnoi Voice Sound Generator')
+
+def download():
+	if v_link_result.get()=='':
+		status.set("URL NOT SPECIFIED")
+		time.sleep(2)
+		status.set("Botnoi Voice Sound Generator")
+	else:
+		allfilename = []
+		name = gen_date()
+		allfilename.append(name)
+		if not os.path.exists(r"C:\Downloads"):
+			os.makedirs(r"C:\Downloads")
+			print('folder was created successfully')
+		os.chdir(r"C:\Downloads")
+		file_url = v_link_result.get()
+		file_name_aft_click = name+'-'+spk_list[var_spk_list.get()]
+		if re.search(".mp3", file_url):
+			if (os.path.exists(file_name_aft_click) == False):
+				r = requests.get(file_url, stream= True)
+				total_size = int(r.headers['content-length'])
+				with open(file_name_aft_click + ".mp3", 'wb') as f:
+					for data in tqdm(iterable=r.iter_content(chunk_size = 1024), total=total_size/1024, unit="KB"):
+						f.write(data)
+				status.set("Download MP3 Completed")
+				time.sleep(0.5)
+				status.set("Botnoi Voice Sound Generator")
+				m_box.showinfo("Botnoi Voice","Download MP3 Completed")
+			else:
+				m_box.showerror("Error","File Name Already Exist in Downloading Path !")
+		else:
+			m_box.showerror("Error", "Only mp3 Files are Allowed to Download !")
+
+def openFolder():
+	path=r"C:\Downloads"
+	command = 'explorer.exe ' + path
+	os.system(command)
+
+randomnum = list(range(65,90)) #gen A-z for ascii
+
+def generatename():
+	nm = ''
+	for i in range(15):
+		rd = chr(random.choice(randomnum))
+		nm += rd
+	#nm += '.mp3'
+	return nm
+
+def gen_date():
+	named_tuple = time.localtime() # get struct_time
+	time_string = time.strftime("%m/%d/%Y, %H:%M:%S", named_tuple)
+	time_string = time.strftime("%m%d%Y%H%M%S", named_tuple)
+	print(time_string)
+	return time_string
+
+def example():
+	txt_sample = 'นิทานดาวลูกไก่ นิทานอีสป พร้อมภาพประกอบสีสันสดใสและข้อคิดสอนใจเป็นอย่างดี เหมาะสำหรับเป็นนิทานก่อนนอน ช่วยเสริมสร้างจินตนาการ และกระตุ้นทักษะการเรียนรู้ของลูกน้อยสำหรับเด็กวัยกำลังโต'
+	txt_input.delete('1.0', END)
+	txt_input.insert(INSERT,txt_sample)
+	#print(txt_sample)
+
+def button_disable():
+	btn_ex.configure(state='disabled')
+	btn_gen.configure(state='disabled')
+	btn_reset.configure(state='disabled')
+	CB1.configure(state= 'disabled')
+
+def button_enable():
+    btn_ex.configure(state='normal')
+    btn_gen.configure(state='normal')
+    btn_reset.configure(state='normal')
+    CB1.configure(state= 'normal')
+
+####### ADD TOKEN - TOP LEVEL ###############################################
+
+def root_add_token(event=None):
+	v_token_root.set('ADD YOUR TOKEN')
+	try:
+		def center_window(w=400, h=140):
+		    ws = root2.winfo_screenwidth()
+		    hs = root2.winfo_screenheight()
+		    x = (ws/2) - (w/2)    
+		    y = (hs/2) - (h/2)
+		    root2.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
+		root2 = Toplevel(root)
+		root2.grab_set()
+		root2.title('ADD YOUR TOKEN')
+		center_window()
+#------------------------------------------------------------------------------------------------------
+
+		def add_token(event=None):
+			token_count = len(v_token.get())
+			#print(token_count)
+			token_lenght = 64
+			if token_count != token_lenght:
+				v_token_root.set('INVALID TOKEN')
+				txt_input.configure(state='disabled')
+				MsgBox = messagebox.showerror("ERROR", "INVALID TOKEN",icon = 'warning')
+			else:
+				token = v_token.get()
+				v_token_root.set(token)
+				txt_input.configure(state='normal')
+				root2.destroy()
+				button_enable()
+				#print(token)		
+
+		def pop_menu_top_level(event):
+		    menu.tk_popup(event.x_root, event.y_root)
+
+		def cut_top_level():
+		    EM1.event_generate("<<Cut>>")
+
+		def copy_top_level():
+		    EM1.event_generate("<<Copy>>")
+
+		def paste_top_level():
+		    EM1.event_generate("<<Paste>>")
+
+		def select_all_top_level():
+		    EM1.event_generate("<<SelectAll>>")
+
+		v_token = StringVar()
+
+		EM1 = ttk.Entry(root2,textvariable=v_token,font=('Tahoma',10),justify="center",foreground='red')
+		EM1.pack(padx=10,pady=10,ipadx=10,ipady=10,fill=BOTH)
+
+		BS = ttk.Button(root2,text='ADD',command=add_token)
+		BS.pack(padx=10,pady=10,ipadx=10,ipady=10,fill=BOTH)
+		BS.bind('<Return>',add_token)
+		#BS.focus_set()
+
+		#Right Click Menu
+		menu = Menu(EM1, tearoff=0) #, bg="black", fg="white"
+		#options
+
+		menu.add_command(label="Cut", command=cut_top_level)
+		menu.add_separator()
+		menu.add_command(label="Copy", command=copy_top_level)
+		menu.add_separator()
+		menu.add_command(label="Paste", command=paste_top_level)
+		menu.add_separator()
+		menu.add_command(label="Select All", command=select_all_top_level)
+
+		root2.bind("<Button - 3>", pop_menu_top_level)
+
+		root2.bind('<Escape>',lambda x: root2.withdraw())
+		root2.mainloop()
+
+	except:
+		MsgBox = messagebox.showerror("ERROR", "INVALID TOKEN",icon = 'warning')
+
+def btn_start_listen():
+	mp3 = v_link_result.get()
+	playsound.playsound(mp3, False)
+
+def btn_stop():
+	root.after(1)
+	sys.exit()
+
+def exit_win():
+	MsgBox = messagebox.askquestion("EXIT", "Do you want to exit?",icon = 'warning')
+	if MsgBox == 'yes':
+		root.destroy()
+
+def pop_menu(event):
+    menu.tk_popup(event.x_root, event.y_root)
+
+def copy():
+    txt_input.event_generate("<<Copy>>")
+
+def cut():
+    txt_input.event_generate("<<Cut>>")
+
+def paste():
+    txt_input.event_generate("<<Paste>>")
+
+def select_all():
+    txt_input.event_generate("<<SelectAll>>")
+
+######################## F1 ####################################
+
+f_top=Frame(F1)
+f_top.pack(fill=BOTH,side=TOP)
+
+l_top=Label(f_top,text='',font=('Tahoma', 10),fg='white',bg='#ccc')#,bg='light blue'
+l_top.pack(fill=BOTH)
+
+status_lbl = Label(l_top,textvariable=status,font=("Tahoma",10),bg="yellow",fg="black")
+status_lbl.pack(fill=BOTH,expand=1 , ipadx=5,ipady=5)
+
+txt_input = Text(l_top, height = 17,width = 100,bg = "light yellow",font=('Tahoma',20,),fg='black',wrap='word')
+txt_input.pack(fill=BOTH, expand=1 , pady=5,padx=5,ipady=5,ipadx=5)
+txt_input.insert(INSERT, "Insert Your Text Here...")
+txt_input.bind('<Button-1>', reset_txt_input)
+
+#Right Click Menu
+menu = Menu(txt_input, tearoff=0) #, bg="black", fg="white"
+#options
+
+menu.add_command(label="Cut", command=cut)
+menu.add_separator()
+menu.add_command(label="Copy", command=copy)
+menu.add_separator()
+menu.add_command(label="Paste", command=paste)
+menu.add_separator()
+menu.add_command(label="Select All", command=select_all)
+
+txt_input.bind("<Button - 3>", pop_menu)
+
+f1=Frame(F1)
+f1.pack(fill=BOTH,side=BOTTOM)
+
+l_control=Label(f1,text='',fg='white',bg='#ccc')#,bg='light blue'
+l_control.pack(fill=BOTH, expand=1)
+
+v_token_root = StringVar()
+v_token_root.set('ADD YOUR TOKEN')
+
+lb_token = Label(l_control, textvariable=v_token_root,height = 1,width = 100,bg = "light blue",font=('Tahoma',10))
+#lb_token.pack(fill=BOTH,expand=0 , pady=5,padx=5,ipady=5,ipadx=5)
+
+v_link_result = StringVar()
+v_link_result.set('Result mp3 URL ...')
+
+en_link_result = ttk.Entry(l_control,textvariable=v_link_result,font=('Tahoma',10),justify="center",foreground='black')
+#en_link_result.pack(padx=5,pady=5,ipadx=5,ipady=5,fill=BOTH)
+
+lb_sel_voice = Label(l_control,text='SPEAKER ->',font=('Tahoma',10),width=10,fg='#000000',bg='yellow') #bg='yellow'
+lb_sel_voice.pack(side=LEFT, fill=BOTH, pady=5,padx=5,ipady=5,ipadx=5)
+
+var_spk_list = StringVar()
+
+CB1 = ttk.Combobox(l_control,values=list(spk_list.keys()),textvariable=var_spk_list,font=('Tahoma', 10),justify='center',width=3,state='readonly')
+CB1.bind('<<ComboboxSelected>>', lambda event: label_selected.config(text=spk_list[var_spk_list.get()]))
+CB1.set('1')
+CB1.pack(side=LEFT, fill=BOTH, pady=5,padx=5,ipady=5,ipadx=5)
+
+label_selected = Label(l_control, text=spk_list[var_spk_list.get()],width=10,fg='white',bg='green',font=('Tahoma',10))
+label_selected.pack(side=LEFT, fill=BOTH, pady=5,padx=5,ipady=5,ipadx=5)
+
+btn_add_token = ttk.Button(l_control,text='ADD TOKEN',command=root_add_token)
+btn_add_token.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+btn_gen = ttk.Button(l_control,text='GENERATE VOICE',command=genvoice_pro)
+btn_gen.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+btn_ex = ttk.Button(l_control,text='EXAMPLE TEXT',command=example)
+btn_ex.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+btn_reset = ttk.Button(l_control,text='RESET TEXT',command=reset_txt_pro,)
+btn_reset.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+btn_exit_win = ttk.Button(l_control,text="EXIT",command=exit_win)
+btn_exit_win.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+######################## F2 All Download MP3 ####################################
+
+import pygame.mixer as mixer        # pip install pygame
+mixer.init()
+
+# Play, Stop, Load and Pause & Resume functions
+def play_song(): # song_name: StringVar, songs_list: Listbox
+	selected= playlist.get(ACTIVE)
+	mixer.music.load(selected)
+	mixer.music.play()
+	txt_play = 'PLAYING : {}'.format(selected)
+	status_tab2.set(txt_play)
+
+def stop_song():
+	mixer.music.stop()
+	playlist.selection_clear(ACTIVE)
+	status_tab2.set("STOPPED")
+
+def load():
+	playlist.delete(0,END)
+	file_dir = os.chdir(r"C:\Downloads")
+	tracks = os.listdir(file_dir)
+	os.chdir(r"C:\Downloads")
+	result = sorted(filter(os.path.isfile, os.listdir('.')), key=os.path.getmtime)
+	print('\n'.join(map(str, result)))
+	for track in result:
+		playlist.insert(END,track)
+
+global paused
+paused = False
+
+def pause(is_paused):
+	global paused
+	paused = is_paused
+	if paused:
+		mixer.music.unpause()
+		paused = False
+		status_tab2.set("RESUMED")
+	else:
+		mixer.music.pause()
+		paused = True
+		status_tab2.set("PAUSED")
+
+def get_item(event):
+	global selected
+	global index
+	try:
+		index=playlist.curselection()
+		selected= playlist.get(index)
+		print(index,selected)
+		status_tab2.set(selected)
+		return selected
+		return index
+	except:
+		pass
+
+def on_click(event):
+    clicked_tab = Tab.tk.call(Tab._w, "identify", "tab", event.x, event.y)
+    active_tab = Tab.index(Tab.select())
+    print(clicked_tab)
+    if clicked_tab == 1:
+    	load()
+    if clicked_tab == 2:
+    	load()
+
+f_top_f2=Frame(F2)
+f_top_f2.pack(fill=BOTH,side=TOP)
+
+l_top_f2=Label(f_top_f2,text='All Download File',font=('Tahoma', 10),fg='#000',bg='yellow')#,bg='light blue'
+l_top_f2.pack(fill=BOTH,expand=1 , ipadx=5,ipady=5)
+
+listbox_frame = LabelFrame(f_top_f2,bd=0)
+listbox_frame.pack()
+
+####################################################################################
+
+playlist = Listbox(listbox_frame, font=('Tahoma', 12), bg='white',fg='grey',selectbackground='Goldenrod',selectforeground='black',width=400, height=26,bd=0)
+scroll_bar = Scrollbar(listbox_frame, orient=VERTICAL)
+scroll_bar.config(command=playlist.yview)
+scroll_bar.pack(side=RIGHT, fill=BOTH)
+playlist.config(yscrollcommand=scroll_bar.set)
+playlist.pack(fill=BOTH, expand=1 , ipadx=10,ipady=10,padx=10,pady=10)
+
+####################################################################################
+
+f_bottom_f2=Frame(F2)
+f_bottom_f2.pack(fill=BOTH,side=BOTTOM)
+
+status_tab2 = StringVar()
+status_tab2.set('READY')
+
+lb_status = Label(f_bottom_f2, textvariable=status_tab2, bg='Goldenrod',fg='black', font=('Tahoma', 12),width=15)
+lb_status.pack(fill=BOTH,expand=1 , ipadx=5,ipady=5)
+
+l_bottom=Label(f_bottom_f2,text='',font=('Tahoma', 10),fg='white',bg='#ccc')#,bg='light blue'
+l_bottom.pack(fill=BOTH, expand=1)
+
+pause_btn = ttk.Button(l_bottom, text='PAUSE',command=lambda:pause(paused))
+pause_btn.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+stop_btn = ttk.Button(l_bottom, text='STOP',command=stop_song)
+stop_btn.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+play_btn = ttk.Button(l_bottom, text='PLAY',command=play_song)
+play_btn.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+open_folder_btn = ttk.Button(l_bottom, text='OPEN FOLDER',command=openFolder)
+open_folder_btn.pack(side=LEFT, fill=BOTH, expand=1 , ipadx=5,ipady=5,padx=5,pady=5)
+
+Tab.bind('<Button-1>', on_click)
+playlist.bind("<<ListboxSelect>>", get_item)
+
+button_disable()
+root_add_token()
+root.mainloop()
+
+################## www.kroonut.com ##################
